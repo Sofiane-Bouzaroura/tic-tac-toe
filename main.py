@@ -1,90 +1,70 @@
-import pygame
-import sys
 
-pygame.init()
-#la dimenssion du tableau
-width, height = 600, 600
-screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Grille 3x3")
+import tkinter as tk
+from tkinter import messagebox
 
-# couleurs
-white = (255, 255, 255)
-black = (0, 0, 0)
+class TicTacToe:
+    def __init__(self):
+        self.window = tk.Tk()
+        self.window.title("Tic Tac Toe")
+        
+        self.current_player = 'X'
+        self.board = [[' ' for _ in range(3)] for _ in range(3)]
 
-# tableau
-board = [["", "", ""],
-         ["", "", ""],
-         ["", "", ""]]
+        self.buttons = [[None for _ in range(3)] for _ in range(3)]
 
-# Fonction pour afficher la grille
-def draw_board():
-    for i in range(1, 3):
-        # Lignes verticales
-        pygame.draw.line(screen, black, (i * width // 3, 0), (i * width // 3, height), 2)
-        # Lignes horizontales
-        pygame.draw.line(screen, black, (0, i * height // 3), (width, i * height // 3), 2)
+        for i in range(3):
+            for j in range(3):
+                self.buttons[i][j] = tk.Button(self.window, text='', font=('normal', 20), width=8, height=4,
+                                               command=lambda row=i, col=j: self.button_click(row, col))
+                self.buttons[i][j].grid(row=i, column=j)
 
-# Fonction pour afficher les symboles sur la grille
-def draw_symbols():
-    font = pygame.font.Font(None, 250)
-    for i in range(3):
-        for j in range(3):
-            if board[i][j] == "X":
-                text = font.render("X", True, black)
-                screen.blit(text, (j * width // 3 + 30, i * height // 3 + 30))
-            elif board[i][j] == "O":
-                text = font.render("O", True, black)
-                screen.blit(text, (j * width // 3 + 30, i * height // 3 + 30))
+    def button_click(self, row, col):
+        if self.board[row][col] == ' ':
+            self.board[row][col] = self.current_player
+            self.buttons[row][col].config(text=self.current_player)
+            
+            if self.check_winner(row, col):
+                messagebox.showinfo("Tic Tac Toe", f"Player {self.current_player} gagnant!")
+                self.reset_board()
+            elif self.check_draw():
+                messagebox.showinfo("Tic Tac Toe", "C'est un match nul!")
+                self.reset_board()
+            else:
+                self.switch_player()
 
-# Fonction pour vérifier s'il y a une victoire
-def check_winner():
-    # Vérifier les lignes et les colonnes
-    for i in range(3):
-        if all(board[i][j] == "X" for j in range(3)) or all(board[j][i] == "X" for j in range(3)):
-            return "X"
-        elif all(board[i][j] == "O" for j in range(3)) or all(board[j][i] == "O" for j in range(3)):
-            return "O"
+    def check_winner(self, row, col):
+        # Check row
+        if all(self.board[row][i] == self.current_player for i in range(3)):
+            return True
+        # Check column
+        if all(self.board[i][col] == self.current_player for i in range(3)):
+            return True
+        # Check diagonal
+        if row == col and all(self.board[i][i] == self.current_player for i in range(3)):
+            return True
+        # Check anti-diagonal
+        if row + col == 2 and all(self.board[i][2 - i] == self.current_player for i in range(3)):
+            return True
+        return False
 
-    # Vérifier les diagonales
-    if all(board[i][i] == "X" for i in range(3)) or all(board[i][2 - i] == "X" for i in range(3)):
-        return "X"
-    elif all(board[i][i] == "O" for i in range(3)) or all(board[i][2 - i] == "O" for i in range(3)):
-        return "O"
+    def check_draw(self):
+        return all(self.board[i][j] != ' ' for i in range(3) for j in range(3))
 
-    return None
+    def switch_player(self):
+        self.current_player = 'O' if self.current_player == 'X' else 'X'
 
-# Fonction principale du jeu
-def main():
-    turn = "X"
+    def reset_board(self):
+        for i in range(3):
+            for j in range(3):
+                self.board[i][j] = ' '
+                self.buttons[i][j].config(text='')
 
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = event.pos
-                row = y // (height // 3)
-                col = x // (width // 3)
-
-                if board[row][col] == "":
-                    board[row][col] = turn
-
-                    winner = check_winner()
-                    if winner:
-                        print(f"Le joueur {winner} a gagné !")
-                        pygame.quit()
-                        sys.exit()
-
-                    turn = "O" if turn == "X" else "X"
-
-        screen.fill(white)
-        draw_board()
-        draw_symbols()
-        pygame.display.flip()
+    def run(self):
+        self.window.mainloop()
 
 if __name__ == "__main__":
-    main()
+    game = TicTacToe()
+    game.run()
 
 
 
